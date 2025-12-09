@@ -1,6 +1,11 @@
 package com.chesspong.model;
 
 import javax.swing.*;
+import java.awt.GridLayout;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class GameState {
     private Board board;
@@ -10,6 +15,8 @@ public class GameState {
     private PongPaddle paddle1, paddle2;
     private boolean gameOver;
     private Joueur winner;
+    private int selectedPieceTypes; // Nouveau champ pour le nombre de types sélectionnés
+    private Map<String, Integer> pieceLives; // Nouveau champ pour stocker les vies par type de pièce
 
     public GameState(int numFiles, Joueur player1, Joueur player2) {
         this.player1 = player1;
@@ -21,6 +28,79 @@ public class GameState {
         this.paddle1 = new PongPaddle(player1, 350, 200, 100, 10); // in front of white pawns
         this.paddle2 = new PongPaddle(player2, 350, 390, 100, 10); // in front of black pawns
         this.gameOver = false;
+        this.pieceLives = new HashMap<>();
+
+        // Sélection du nombre de types de pièces
+        selectPieceTypes();
+
+        // Attribution des vies selon la sélection
+        assignLives();
+    }
+
+    // Méthode pour sélectionner le nombre de types de pièces
+    private void selectPieceTypes() {
+        String[] options = {"2", "4", "6", "8"};
+        String selected = (String) JOptionPane.showInputDialog(null, "Choisissez le nombre de types de pièces :",
+                "Configuration de la partie", JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
+        if (selected != null) {
+            this.selectedPieceTypes = Integer.parseInt(selected);
+        } else {
+            this.selectedPieceTypes = 2; // Valeur par défaut
+        }
+    }
+
+    // Méthode pour attribuer les vies selon le nombre sélectionné
+    private void assignLives() {
+        // Collecter les types de pièces selon la sélection
+        List<String> pieceTypes = new ArrayList<>();
+        pieceTypes.add("Pawn");
+        pieceTypes.add("King");
+        pieceTypes.add("Queen");
+        if (selectedPieceTypes >= 4) {
+            pieceTypes.add("Bishop");
+        }
+        if (selectedPieceTypes >= 6) {
+            pieceTypes.add("Knight");
+        }
+        if (selectedPieceTypes >= 8) {
+            pieceTypes.add("Rook");
+        }
+
+        // Créer un panneau pour le formulaire
+        JPanel panel = new JPanel(new GridLayout(pieceTypes.size(), 2, 5, 5));
+        Map<String, JTextField> fields = new HashMap<>();
+        for (String type : pieceTypes) {
+            panel.add(new JLabel("Vie pour les " + type + "s :"));
+            JTextField field = new JTextField("1", 5);
+            panel.add(field);
+            fields.put(type, field);
+        }
+
+        // Afficher le formulaire
+        int result = JOptionPane.showConfirmDialog(null, panel, "Configuration des vies", JOptionPane.OK_CANCEL_OPTION);
+        if (result == JOptionPane.OK_OPTION) {
+            for (String type : pieceTypes) {
+                JTextField field = fields.get(type);
+                String input = field.getText().trim();
+                try {
+                    int life = Integer.parseInt(input);
+                    pieceLives.put(type, life);
+                } catch (NumberFormatException e) {
+                    JOptionPane.showMessageDialog(null, "Valeur invalide pour " + type + ". Utilisation de 1 par défaut.");
+                    pieceLives.put(type, 1);
+                }
+            }
+        } else {
+            // Valeurs par défaut si annulé
+            for (String type : pieceTypes) {
+                pieceLives.put(type, 1);
+            }
+        }
+    }
+
+    // Getter pour les vies des pièces
+    public Map<String, Integer> getPieceLives() {
+        return pieceLives;
     }
 
     public Board getBoard() {
