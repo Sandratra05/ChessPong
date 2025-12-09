@@ -29,24 +29,10 @@ public class GameState {
         this.paddle2 = new PongPaddle(player2, 350, 390, 100, 10); // in front of black pawns
         this.gameOver = false;
         this.pieceLives = new HashMap<>();
-
-        // Sélection du nombre de types de pièces
-        selectPieceTypes();
+        this.selectedPieceTypes = numFiles; // Utiliser numFiles comme nombre de types sélectionnés
 
         // Attribution des vies selon la sélection
         assignLives();
-    }
-
-    // Méthode pour sélectionner le nombre de types de pièces
-    private void selectPieceTypes() {
-        String[] options = {"2", "4", "6", "8"};
-        String selected = (String) JOptionPane.showInputDialog(null, "Choisissez le nombre de types de pièces :",
-                "Configuration de la partie", JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
-        if (selected != null) {
-            this.selectedPieceTypes = Integer.parseInt(selected);
-        } else {
-            this.selectedPieceTypes = 2; // Valeur par défaut
-        }
     }
 
     // Méthode pour attribuer les vies selon le nombre sélectionné

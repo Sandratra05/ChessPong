@@ -28,7 +28,7 @@ public class CollisionHandler {
                 double py = piece.getY() * 50 + 25 + boardOffsetY;
                 double dist = Math.sqrt(Math.pow(ball.getX() - px, 2) + Math.pow(ball.getY() - py, 2));
                 if (dist <= ball.getRadius() + 15) {
-                    piece.setHealth(piece.getHealth() - 10);
+                    piece.setHealth(piece.getHealth() - 1);
                     ball.setVx(-ball.getVx());
                     if (!piece.isAlive()) {
                         board.removePiece(piece.getX(), piece.getY());
