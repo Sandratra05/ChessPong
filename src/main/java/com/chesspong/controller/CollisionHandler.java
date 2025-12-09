@@ -28,13 +28,35 @@ public class CollisionHandler {
                 double py = piece.getY() * 50 + boardOffsetY;
                 double pw = piece.getWidth();
                 double ph = piece.getHeight();
-                if (ball.getX() + ball.getRadius() >= px && ball.getX() - ball.getRadius() <= px + pw &&
-                    ball.getY() + ball.getRadius() >= py && ball.getY() - ball.getRadius() <= py + ph) {
+                // Compute closest point on rectangle to ball center
+                double closestX = Math.max(px, Math.min(ball.getX(), px + pw));
+                double closestY = Math.max(py, Math.min(ball.getY(), py + ph));
+                double dx = ball.getX() - closestX;
+                double dy = ball.getY() - closestY;
+                double distance = Math.sqrt(dx * dx + dy * dy);
+                if (distance < ball.getRadius()) {
+                    System.out.println("Collision with piece at (" + piece.getX() + ", " + piece.getY() + ")");
+
                     piece.setHealth(piece.getHealth() - 1);
-                    // Supprimer le rebond pour permettre à la balle de continuer et toucher les pièces derrière
+                    System.out.println("Piece health: " + piece.getHealth());
+                    // Collision detected
                     if (!piece.isAlive()) {
                         board.removePiece(piece.getX(), piece.getY());
                     }
+                    // Bounce the ball
+                    double nx = dx;
+                    double ny = dy;
+                    if (distance > 0) {
+                        nx /= distance;
+                        ny /= distance;
+                    } else {
+                        // If exactly at center, arbitrary normal (e.g., horizontal bounce)
+                        nx = 0;
+                        ny = 1;
+                    }
+                    double dot = ball.getVx() * nx + ball.getVy() * ny;
+                    ball.setVx(ball.getVx() - 2 * dot * nx);
+                    ball.setVy(ball.getVy() - 2 * dot * ny);
                 }
             }
         }

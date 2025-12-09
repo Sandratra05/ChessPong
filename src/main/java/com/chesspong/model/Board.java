@@ -70,33 +70,6 @@ public class Board {
         }
     }
 
-    //    private void placePiecesForPlayer(Joueur player, int startFile, int pieceRank, int pawnRank) {
-//        if (numFiles >= 2) {
-//            cells[startFile][pieceRank].setPiece(new Queen(player, 100, startFile, pieceRank));
-//            cells[startFile + 1][pieceRank].setPiece(new King(player, 100, startFile + 1, pieceRank));
-//            cells[startFile][pawnRank].setPiece(new Pawn(player, 50, startFile, pawnRank));
-//            cells[startFile + 1][pawnRank].setPiece(new Pawn(player, 50, startFile + 1, pawnRank));
-//        }
-//        if (numFiles >= 4) {
-//            cells[startFile - 1][pieceRank].setPiece(new Bishop(player, 75, startFile - 1, pieceRank));
-//            cells[startFile + 2][pieceRank].setPiece(new Bishop(player, 75, startFile + 2, pieceRank));
-//            cells[startFile - 1][pawnRank].setPiece(new Pawn(player, 50, startFile - 1, pawnRank));
-//            cells[startFile + 2][pawnRank].setPiece(new Pawn(player, 50, startFile + 2, pawnRank));
-//        }
-//        if (numFiles >= 6) {
-//            cells[startFile - 2][pieceRank].setPiece(new Knight(player, 60, startFile - 2, pieceRank));
-//            cells[startFile + 3][pieceRank].setPiece(new Knight(player, 60, startFile + 3, pieceRank));
-//            cells[startFile - 2][pawnRank].setPiece(new Pawn(player, 50, startFile - 2, pawnRank));
-//            cells[startFile + 3][pawnRank].setPiece(new Pawn(player, 50, startFile + 3, pawnRank));
-//        }
-//        if (numFiles == 8) {
-//            cells[0][pieceRank].setPiece(new Rook(player, 80, 0, pieceRank));
-//            cells[7][pieceRank].setPiece(new Rook(player, 80, 7, pieceRank));
-//            cells[0][pawnRank].setPiece(new Pawn(player, 50, 0, pawnRank));
-//            cells[7][pawnRank].setPiece(new Pawn(player, 50, 7, pawnRank));
-//        }
-//    }
-
     public Cell getCell(int x, int y) {
         if (x < 0 || x >= 8 || y < 0 || y >= 8) return null;
         return cells[x][y];

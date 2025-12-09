@@ -33,6 +33,9 @@ public class GameState {
 
         // Attribution des vies selon la sélection
         assignLives();
+
+        // Mettre à jour la santé des pièces selon les vies choisies
+        updatePieceHealths();
     }
 
     // Méthode pour attribuer les vies selon le nombre sélectionné
@@ -57,7 +60,7 @@ public class GameState {
         Map<String, JTextField> fields = new HashMap<>();
         for (String type : pieceTypes) {
             panel.add(new JLabel("Vie pour les " + type + "s :"));
-            JTextField field = new JTextField("1", 5);
+            JTextField field = new JTextField("", 5);
             panel.add(field);
             fields.put(type, field);
         }
@@ -81,6 +84,19 @@ public class GameState {
             for (String type : pieceTypes) {
                 pieceLives.put(type, 1);
             }
+        }
+    }
+
+    // Nouvelle méthode pour mettre à jour la santé des pièces
+    private void updatePieceHealths() {
+        for (Map.Entry<String, Integer> entry : pieceLives.entrySet()) {
+            String type = entry.getKey();
+            int life = entry.getValue();
+
+            // Mettre à jour la santé de chaque pièce sur le plateau
+            board.getAllPieces().stream()
+                    .filter(piece -> piece.getClass().getSimpleName().equals(type))
+                    .forEach(piece -> piece.setHealth(life));
         }
     }
 
