@@ -1,5 +1,7 @@
 package com.chesspong.model;
 
+import javax.swing.*;
+
 public class GameState {
     private Board board;
     private Joueur player1, player2;
@@ -68,6 +70,7 @@ public class GameState {
             System.out.println("Le roi de " + player1.getName() + " est mort !");
             gameOver = true;
             winner = player2;
+            JOptionPane.showMessageDialog(null, "La partie est terminée ! " + player2.getName() + " a gagné.", "Fin de partie", JOptionPane.INFORMATION_MESSAGE);
             return;
         }
 
@@ -78,6 +81,7 @@ public class GameState {
             System.out.println("Le roi de " + player2.getName() + " est mort !");
             gameOver = true;
             winner = player1;
+            JOptionPane.showMessageDialog(null, "La partie est terminée ! " + player1.getName() + " a gagné.", "Fin de partie", JOptionPane.INFORMATION_MESSAGE);
         }
     }
 }
