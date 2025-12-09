@@ -20,8 +20,8 @@ public class GameController {
     private AnimationTimer timer;
 
     public GameController(Stage stage, int numFiles) {
-        Joueur player1 = new Joueur("Player1", true);
-        Joueur player2 = new Joueur("Player2", false);
+        Joueur player1 = new Joueur("Player 1", true);
+        Joueur player2 = new Joueur("Player 2", false);
         gameState = new GameState(numFiles, player1, player2);
 
         boardView = new BoardView(gameState.getBoard());
