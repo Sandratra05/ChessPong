@@ -25,9 +25,9 @@ public class BoardView extends Canvas {
             for (int y = 0; y < 8; y++) {
                 Cell cell = board.getCell(x, y);
                 if ((x + y) % 2 == 0) {
-                    gc.setFill(Color.WHITE);
+                    gc.setFill(Color.WHEAT);
                 } else {
-                    gc.setFill(Color.LIGHTGRAY);
+                    gc.setFill(Color.SADDLEBROWN);
                 }
                 gc.fillRect(x * cellSize, y * cellSize, cellSize, cellSize);
 
@@ -42,9 +42,9 @@ public class BoardView extends Canvas {
     private void drawPiece(GraphicsContext gc, Piece piece, double centerX, double centerY) {
         gc.setFont(javafx.scene.text.Font.font(20));
         if (piece.getOwner().isWhite()) {
-            gc.setFill(Color.BLUE);
+            gc.setFill(Color.WHITE);
         } else {
-            gc.setFill(Color.RED);
+            gc.setFill(Color.BLACK);
         }
         gc.fillText(String.valueOf(piece.getSymbol()), centerX - 10, centerY + 7);
     }
