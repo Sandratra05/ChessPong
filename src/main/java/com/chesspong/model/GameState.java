@@ -62,13 +62,22 @@ public class GameState {
     }
 
     public void checkWinCondition() {
-        // check if a king has 0 health
-        for (Piece piece : board.getAllPieces()) {
-            if (piece instanceof King && piece.getHealth() <= 0) {
-                System.out.println("Le roi est mort !");
-                gameOver = true;
-                winner = piece.getOwner() == player1 ? player2 : player1;
-            }
+        boolean king1Present = board.getAllPieces().stream()
+                .anyMatch(piece -> piece instanceof King && piece.getOwner().equals(player1));
+        if (!king1Present) {
+            System.out.println("Le roi de " + player1.getName() + " est mort !");
+            gameOver = true;
+            winner = player2;
+            return;
+        }
+
+        // Vérifier si le roi de player2 est absent de l'échiquier
+        boolean king2Present = board.getAllPieces().stream()
+                .anyMatch(piece -> piece instanceof King && piece.getOwner().equals(player2));
+        if (!king2Present) {
+            System.out.println("Le roi de " + player2.getName() + " est mort !");
+            gameOver = true;
+            winner = player1;
         }
     }
 }
