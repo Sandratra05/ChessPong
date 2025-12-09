@@ -24,12 +24,14 @@ public class CollisionHandler {
         double boardOffsetY = 100;
         for (Piece piece : board.getAllPieces()) {
             if (piece.isAlive()) {
-                double px = piece.getX() * 50 + 25 + boardOffsetX;
-                double py = piece.getY() * 50 + 25 + boardOffsetY;
-                double dist = Math.sqrt(Math.pow(ball.getX() - px, 2) + Math.pow(ball.getY() - py, 2));
-                if (dist <= ball.getRadius() + 15) {
+                double px = piece.getX() * 50 + boardOffsetX;
+                double py = piece.getY() * 50 + boardOffsetY;
+                double pw = piece.getWidth();
+                double ph = piece.getHeight();
+                if (ball.getX() + ball.getRadius() >= px && ball.getX() - ball.getRadius() <= px + pw &&
+                    ball.getY() + ball.getRadius() >= py && ball.getY() - ball.getRadius() <= py + ph) {
                     piece.setHealth(piece.getHealth() - 1);
-                    ball.setVx(-ball.getVx());
+                    // Supprimer le rebond pour permettre à la balle de continuer et toucher les pièces derrière
                     if (!piece.isAlive()) {
                         board.removePiece(piece.getX(), piece.getY());
                     }
