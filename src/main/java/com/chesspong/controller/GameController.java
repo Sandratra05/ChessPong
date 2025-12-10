@@ -29,7 +29,7 @@ public class GameController {
 
         Joueur player1 = new Joueur("Player 1", true);
         Joueur player2 = new Joueur("Player 2", false);
-        gameState = new GameState(numFiles, player1, player2);
+        gameState = new GameState(numFiles, player1, player2, isHost);
 
         boardView = new BoardView(gameState.getBoard());
         boardView.setLayoutX(400 - (numFiles * 70) / 2.0);

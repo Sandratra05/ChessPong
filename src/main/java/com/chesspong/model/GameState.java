@@ -18,7 +18,7 @@ public class GameState {
     private int selectedPieceTypes; // Nouveau champ pour le nombre de types sélectionnés
     private Map<String, Integer> pieceLives; // Nouveau champ pour stocker les vies par type de pièce
 
-    public GameState(int numFiles, Joueur player1, Joueur player2) {
+    public GameState(int numFiles, Joueur player1, Joueur player2, boolean skipLifeConfig) {
         this.player1 = player1;
         this.player2 = player2;
         this.board = new Board(numFiles, player1, player2);
@@ -32,7 +32,9 @@ public class GameState {
         this.selectedPieceTypes = numFiles; // Utiliser numFiles comme nombre de types sélectionnés
 
         // Attribution des vies selon la sélection
-        assignLives();
+        if (skipLifeConfig) {
+            assignLives();
+        }
 
         // Mettre à jour la santé des pièces selon les vies choisies
         updatePieceHealths();

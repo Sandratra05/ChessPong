@@ -144,18 +144,18 @@ public class Main extends Application {
         });
     }
 
-    // Fenêtre de saisie des vies (retourne null si annulation)
-    private List<Integer> configurePieceHealths(int numFiles) {
-        List<Integer> healths = new ArrayList<>();
-        for (int i = 1; i <= numFiles; i++) {
-            String input = JOptionPane.showInputDialog(null, "Vie pour le type de pièce " + i + " :");
-            if (input == null) return null; // Annulation
-            try {
-                healths.add(Integer.parseInt(input));
-            } catch (NumberFormatException e) {
-                return null; // Erreur -> annuler pour simplicité
-            }
-        }
-        return healths;
-    }
+//    // Fenêtre de saisie des vies (retourne null si annulation)
+//    private List<Integer> configurePieceHealths(int numFiles) {
+//        List<Integer> healths = new ArrayList<>();
+//        for (int i = 1; i <= numFiles; i++) {
+//            String input = JOptionPane.showInputDialog(null, "Vie pour le type de pièce " + i + " :");
+//            if (input == null) return null; // Annulation
+//            try {
+//                healths.add(Integer.parseInt(input));
+//            } catch (NumberFormatException e) {
+//                return null; // Erreur -> annuler pour simplicité
+//            }
+//        }
+//        return healths;
+//    }
 }
