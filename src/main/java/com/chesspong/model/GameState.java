@@ -24,9 +24,9 @@ public class GameState {
         this.board = new Board(numFiles, player1, player2);
         this.currentPlayer = player1; // or random
         // initialize ball and paddles
-        this.ball = new Ball(400, 300, 0.5, 0.5, 10); // example
-        this.paddle1 = new PongPaddle(player1, 350, 200, 100, 10); // in front of white pawns
-        this.paddle2 = new PongPaddle(player2, 350, 390, 100, 10); // in front of black pawns
+        this.ball = new Ball(400, 380, 1, 1, 10); // example - centré dans le nouveau plateau (100 + 560/2 = 380)
+        this.paddle1 = new PongPaddle(player1, 350, 510,100, 10); // in front of white pawns
+        this.paddle2 = new PongPaddle(player2, 350, 240, 100, 10); // in front of black pawns
         this.gameOver = false;
         this.pieceLives = new HashMap<>();
         this.selectedPieceTypes = numFiles; // Utiliser numFiles comme nombre de types sélectionnés

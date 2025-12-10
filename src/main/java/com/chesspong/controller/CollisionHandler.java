@@ -18,7 +18,7 @@ public class CollisionHandler {
 
         // Collision with pieces
         int start = (8 - board.getNumFiles()) / 2;
-        double boardScreenLeft = 400.0 - (board.getNumFiles() * 50) / 2.0; // same centering used in GameController
+        double boardScreenLeft = 400.0 - (board.getNumFiles() * 70) / 2.0; // same centering used in GameController
         double boardOffsetY = 100.0;
 
         for (Piece piece : board.getAllPieces()) {
@@ -27,10 +27,10 @@ public class CollisionHandler {
             int col = piece.getX();
             if (col < start || col >= start + board.getNumFiles()) continue;
 
-            double px = boardScreenLeft + (col - start) * 50.0;
-            double py = boardOffsetY + piece.getY() * 50.0;
-            double pw = 50.0;
-            double ph = 50.0;
+            double px = boardScreenLeft + (col - start) * 70.0;
+            double py = boardOffsetY + piece.getY() * 70.0;
+            double pw = 70.0;
+            double ph = 70.0;
 
             double segMinX = Math.min(prevX, curX) - ball.getRadius();
             double segMaxX = Math.max(prevX, curX) + ball.getRadius();
@@ -97,12 +97,12 @@ public class CollisionHandler {
         }
 
         // Wall bounces (board boundaries) - visible board bounds
-        double left = 400.0 - (board.getNumFiles() * 50) / 2.0;
-        double right = left + board.getNumFiles() * 50.0;
+        double left = 400.0 - (board.getNumFiles() * 70) / 2.0;
+        double right = left + board.getNumFiles() * 70.0;
         if (ball.getX() - ball.getRadius() <= left || ball.getX() + ball.getRadius() >= right) {
             ball.setVx(-ball.getVx());
         }
-        if (ball.getY() - ball.getRadius() <= 100.0 || ball.getY() + ball.getRadius() >= 500.0) {
+        if (ball.getY() - ball.getRadius() <= 100.0 || ball.getY() + ball.getRadius() >= 660.0) {
             ball.setVy(-ball.getVy());
         }
     }
