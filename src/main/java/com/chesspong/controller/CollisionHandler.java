@@ -20,7 +20,7 @@ public class CollisionHandler {
         }
 
         // Collision with pieces
-        double boardOffsetX = 200;
+        double boardOffsetX = 400 - (board.getNumFiles() * 50) / 2.0;
         double boardOffsetY = 100;
         for (Piece piece : board.getAllPieces()) {
             if (piece.isAlive()) {
@@ -62,7 +62,9 @@ public class CollisionHandler {
         }
 
         // Wall bounces (board boundaries)
-        if (ball.getX() - ball.getRadius() <= 200 || ball.getX() + ball.getRadius() >= 600) {
+        double left = boardOffsetX;
+        double right = boardOffsetX + board.getNumFiles() * 50;
+        if (ball.getX() - ball.getRadius() <= left || ball.getX() + ball.getRadius() >= right) {
             ball.setVx(-ball.getVx());
         }
         if (ball.getY() - ball.getRadius() <= 100 || ball.getY() + ball.getRadius() >= 500) {

@@ -22,7 +22,7 @@ public class BoardView extends Canvas {
     private Map<String, Image> pieceImages;
 
     public BoardView(Board board) {
-        super(400, 400);
+        super(board.getNumFiles() * 50, 400);
         this.board = board;
         loadPieceImages();
     }
@@ -47,15 +47,18 @@ public class BoardView extends Canvas {
 
     public void draw() {
         GraphicsContext gc = getGraphicsContext2D();
+        double width = board.getNumFiles() * cellSize;
+        double height = 8 * cellSize;
         gc.setFill(Color.BEIGE);
-        gc.fillRect(0, 0, 400, 400);
+        gc.fillRect(0, 0, width, height);
 
         // Ajouter la bordure noire
         gc.setStroke(Color.BLACK);
         gc.setLineWidth(2);
-        gc.strokeRect(0, 0, 400, 400);
+        gc.strokeRect(0, 0, width, height);
 
-        for (int x = 0; x < 8; x++) {
+        int start = (8 - board.getNumFiles()) / 2;
+        for (int x = start; x < start + board.getNumFiles(); x++) {
             for (int y = 0; y < 8; y++) {
                 Cell cell = board.getCell(x, y);
                 if ((x + y) % 2 == 0) {
@@ -63,11 +66,13 @@ public class BoardView extends Canvas {
                 } else {
                     gc.setFill(Color.SADDLEBROWN);
                 }
-                gc.fillRect(x * cellSize, y * cellSize, cellSize, cellSize);
+                double drawX = (x - start) * cellSize;
+                double drawY = y * cellSize;
+                gc.fillRect(drawX, drawY, cellSize, cellSize);
 
                 if (!cell.isEmpty()) {
                     Piece piece = cell.getPiece();
-                    drawPiece(gc, piece, x * cellSize + cellSize / 2, y * cellSize + cellSize / 2);
+                    drawPiece(gc, piece, drawX + cellSize / 2, drawY + cellSize / 2);
                 }
             }
         }

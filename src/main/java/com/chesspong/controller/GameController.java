@@ -25,7 +25,7 @@ public class GameController {
         gameState = new GameState(numFiles, player1, player2);
 
         boardView = new BoardView(gameState.getBoard());
-        boardView.setLayoutX(200);
+        boardView.setLayoutX(400 - (numFiles * 50) / 2.0);
         boardView.setLayoutY(100);
         ballView = new BallView(gameState.getBall());
         paddleView1 = new PaddleView(gameState.getPaddle1());
