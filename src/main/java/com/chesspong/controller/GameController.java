@@ -25,14 +25,14 @@ public class GameController {
         gameState = new GameState(numFiles, player1, player2);
 
         boardView = new BoardView(gameState.getBoard());
-        boardView.setLayoutX(400 - (numFiles * 50) / 2.0);
+        boardView.setLayoutX(400 - (numFiles * 70) / 2.0);
         boardView.setLayoutY(100);
         ballView = new BallView(gameState.getBall());
         paddleView1 = new PaddleView(gameState.getPaddle1());
         paddleView2 = new PaddleView(gameState.getPaddle2());
 
         // Ajuster la taille des paddles selon le nombre de colonnes
-        double cellSize = 50;
+        double cellSize = 70;
         double playAreaWidth = numFiles * cellSize;
         double playAreaX = boardView.getLayoutX();
 
@@ -57,7 +57,7 @@ public class GameController {
         Pane root = new Pane();
         root.getChildren().addAll(boardView, ballView, paddleView1, paddleView2);
 
-        Scene scene = new Scene(root, 800, 600);
+        Scene scene = new Scene(root, 800, 800);
         stage.setScene(scene);
         stage.setTitle("ChessPong");
 
