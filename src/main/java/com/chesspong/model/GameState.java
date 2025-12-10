@@ -24,7 +24,7 @@ public class GameState {
         this.board = new Board(numFiles, player1, player2);
         this.currentPlayer = player1; // or random
         // initialize ball and paddles
-        this.ball = new Ball(400, 300, 1, 1, 10); // example
+        this.ball = new Ball(400, 300, 0.5, 0.5, 10); // example
         this.paddle1 = new PongPaddle(player1, 350, 200, 100, 10); // in front of white pawns
         this.paddle2 = new PongPaddle(player2, 350, 390, 100, 10); // in front of black pawns
         this.gameOver = false;
