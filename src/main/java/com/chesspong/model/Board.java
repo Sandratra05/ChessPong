@@ -90,4 +90,8 @@ public class Board {
     public void removePiece(int x, int y) {
         cells[x][y].setPiece(null);
     }
+
+    public int getNumFiles() {
+        return numFiles;
+    }
 }
