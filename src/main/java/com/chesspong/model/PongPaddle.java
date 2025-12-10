@@ -38,4 +38,13 @@ public class PongPaddle {
     public double getWidth() {
         return width;
     }
+
+    // Setters ajoutés pour permettre d'ajuster la taille dynamiquement
+    public void setWidth(double width) {
+        this.width = width;
+    }
+
+    public void setHeight(double height) {
+        this.height = height;
+    }
 }

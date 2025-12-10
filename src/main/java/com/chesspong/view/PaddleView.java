@@ -15,6 +15,9 @@ public class PaddleView extends Rectangle {
     }
 
     public void updatePosition() {
+        // Mettre à jour la taille au cas où le modèle ait changé
+        setWidth(paddle.getWidth());
+        setHeight(paddle.getHeight());
         setX(paddle.getX());
         setY(paddle.getY());
     }
