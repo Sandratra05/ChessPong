@@ -142,6 +142,10 @@ public class Main extends Application {
                     numFiles = gameConfig.getNumFiles();
                     showInfo("Configuration reçue: " + numFiles + " types de pièces\nDémarrage de la partie...");
                     startGame(primaryStage, false);
+                    // Appliquer immédiatement les vies envoyées par l’hôte
+                    if (gameConfig.getPieceLives() != null) {
+                        gameController.getGameState().setPieceLives(gameConfig.getPieceLives());
+                    }
                 });
             }
         });
