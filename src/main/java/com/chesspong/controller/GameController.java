@@ -68,7 +68,18 @@ public class GameController {
         stage.setScene(scene);
         stage.setTitle("ChessPong");
 
-        inputHandler = new InputHandler(scene, gameState.getPaddle1(), gameState.getPaddle2(), playAreaX, playAreaWidth);
+//        inputHandler = new InputHandler(scene, gameState.getPaddle1(), gameState.getPaddle2(), playAreaX, playAreaWidth);
+        if (isHost == null) {
+            // Jeu local : contrôle des deux paddles
+            inputHandler = new InputHandler(scene, gameState.getPaddle1(), gameState.getPaddle2(), playAreaX, playAreaWidth);
+        } else if (isHost) {
+            // Hôte : contrôle seulement paddle1
+            inputHandler = new InputHandler(scene, gameState.getPaddle1(), null, playAreaX, playAreaWidth);  // Adaptez InputHandler pour gérer null
+        } else {
+            // Client : contrôle seulement paddle2
+            inputHandler = new InputHandler(scene, null, gameState.getPaddle2(), playAreaX, playAreaWidth);  // Adaptez InputHandler pour gérer null
+        }
+
         collisionHandler = new CollisionHandler();
 
         timer = new AnimationTimer() {
