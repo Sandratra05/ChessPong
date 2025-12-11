@@ -67,6 +67,8 @@ public class Main extends Application {
                     menuView.show(); // Retour au menu si annulation
                     return;
                 }
+
+                System.out.println("----------- EN LOCAL OO ---------");
                 startGame(primaryStage, null);
             }
         });

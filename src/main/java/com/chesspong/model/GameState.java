@@ -13,12 +13,12 @@ public class GameState {
     private Joueur currentPlayer;
     private Ball ball;
     private PongPaddle paddle1, paddle2;
-    private boolean gameOver;
+    private Boolean gameOver;
     private Joueur winner;
     private int selectedPieceTypes; // Nouveau champ pour le nombre de types sélectionnés
     private Map<String, Integer> pieceLives; // Nouveau champ pour stocker les vies par type de pièce
 
-    public GameState(int numFiles, Joueur player1, Joueur player2, boolean skipLifeConfig) {
+    public GameState(int numFiles, Joueur player1, Joueur player2, Boolean doLifeConfig) {
         this.player1 = player1;
         this.player2 = player2;
         this.board = new Board(numFiles, player1, player2);
@@ -32,7 +32,7 @@ public class GameState {
         this.selectedPieceTypes = numFiles; // Utiliser numFiles comme nombre de types sélectionnés
 
         // Attribution des vies selon la sélection
-        if (skipLifeConfig) {
+        if (doLifeConfig) {
             assignLives();
         }
 
