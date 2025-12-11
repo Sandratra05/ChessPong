@@ -159,9 +159,9 @@ public class GameController {
                                 gameStateData.getBallData().getVy()
                         );
                         gameState.getPaddle1().setY(gameStateData.getPaddle1Data().getY());
-                        gameState.getPaddle2().setY(gameStateData.getPaddle2Data().getY());
-
                         gameState.getPaddle1().setX(gameStateData.getPaddle1Data().getX());
+
+                        gameState.getPaddle2().setY(gameStateData.getPaddle2Data().getY());
                         gameState.getPaddle2().setX(gameStateData.getPaddle2Data().getX());
                     }
                 });
@@ -179,9 +179,12 @@ public class GameController {
                         alert.setContentText("Configuration: " + gameConfig.getNumFiles() + " types de pièces\nDémarrage de la partie...");
                         alert.showAndWait();
 
+                        if (gameConfig.getPieceLives() != null) {
+                            gameState.setPieceLives(gameConfig.getPieceLives());
+                        }
                         // Créer une nouvelle instance du contrôleur avec les bons paramètres
-                        Stage stage = (Stage) ballView.getScene().getWindow();
-                        new GameController(stage, gameConfig.getNumFiles(), networkManager, isHost);
+//                        Stage stage = (Stage) ballView.getScene().getWindow();
+//                        new GameController(stage, gameConfig.getNumFiles(), networkManager, isHost);
                     }
                 });
             }
