@@ -160,6 +160,9 @@ public class GameController {
                         );
                         gameState.getPaddle1().setY(gameStateData.getPaddle1Data().getY());
                         gameState.getPaddle2().setY(gameStateData.getPaddle2Data().getY());
+
+                        gameState.getPaddle1().setX(gameStateData.getPaddle1Data().getX());
+                        gameState.getPaddle2().setX(gameStateData.getPaddle2Data().getX());
                     }
                 });
             }
