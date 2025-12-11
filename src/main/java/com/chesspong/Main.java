@@ -120,6 +120,7 @@ public class Main extends Application {
 
     private void setupClientNetworkListener(Stage primaryStage) {
         networkManager.setUpdateListener(new NetworkManager.NetworkUpdateListener() {
+
             @Override
             public void onPaddleUpdate(int playerId, double x, double y) {
                 // Sera géré par le GameController une fois créé

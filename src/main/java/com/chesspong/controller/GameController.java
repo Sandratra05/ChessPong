@@ -106,13 +106,32 @@ public class GameController {
 
     private void setupNetworkListeners() {
         networkManager.setUpdateListener(new NetworkManager.NetworkUpdateListener() {
+//            @Override
+//            public void onPaddleUpdate(int playerId, double x, double y) {
+//                javafx.application.Platform.runLater(() -> {
+//                    if (isHost && playerId == 2) {
+//                        gameState.getPaddle2().setY(y);
+//                    } else if (!isHost && playerId == 1) {
+//                        gameState.getPaddle1().setY(y);
+//                    }
+//                });
+//            }
+
             @Override
             public void onPaddleUpdate(int playerId, double x, double y) {
                 javafx.application.Platform.runLater(() -> {
-                    if (isHost && playerId == 2) {
-                        gameState.getPaddle2().setY(y);
-                    } else if (!isHost && playerId == 1) {
-                        gameState.getPaddle1().setY(y);
+                    if (isHost) {
+                        // hôte reçoit le paddle2 du client
+                        if (playerId == 2) {
+                            gameState.getPaddle2().setX(x);
+                            gameState.getPaddle2().setY(y);
+                        }
+                    } else {
+                        // client reçoit le paddle1 de l’hôte
+                        if (playerId == 1) {
+                            gameState.getPaddle1().setX(x);
+                            gameState.getPaddle1().setY(y);
+                        }
                     }
                 });
             }
@@ -163,6 +182,7 @@ public class GameController {
                     }
                 });
             }
+
         });
     }
 
