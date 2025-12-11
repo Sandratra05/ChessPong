@@ -2,11 +2,13 @@ package com.chesspong.controller;
 
 import com.chesspong.model.GameState;
 import com.chesspong.model.Joueur;
+import com.chesspong.network.NetworkManager;
 import com.chesspong.view.BallView;
 import com.chesspong.view.BoardView;
 import com.chesspong.view.PaddleView;
 import javafx.animation.AnimationTimer;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
 import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
 
@@ -18,11 +20,20 @@ public class GameController {
     private InputHandler inputHandler;
     private CollisionHandler collisionHandler;
     private AnimationTimer timer;
+    private NetworkManager networkManager;
+    private Boolean isHost; // null = local, true = host, false = client
 
-    public GameController(Stage stage, int numFiles) {
+    public GameController(Stage stage, int numFiles, NetworkManager networkManager, Boolean isHost) {
+        this.networkManager = networkManager;
+        this.isHost = isHost;
+
         Joueur player1 = new Joueur("Player 1", true);
         Joueur player2 = new Joueur("Player 2", false);
-        gameState = new GameState(numFiles, player1, player2);
+
+        System.out.println("isHost: " + isHost);
+        boolean doLifeConfig = (isHost == null) ? true : isHost;
+
+        gameState = new GameState(numFiles, player1, player2, doLifeConfig);
 
         boardView = new BoardView(gameState.getBoard());
         boardView.setLayoutX(400 - (numFiles * 70) / 2.0);
@@ -61,7 +72,18 @@ public class GameController {
         stage.setScene(scene);
         stage.setTitle("ChessPong");
 
-        inputHandler = new InputHandler(scene, gameState.getPaddle1(), gameState.getPaddle2(), playAreaX, playAreaWidth);
+//        inputHandler = new InputHandler(scene, gameState.getPaddle1(), gameState.getPaddle2(), playAreaX, playAreaWidth);
+        if (isHost == null) {
+            // Jeu local : contrôle des deux paddles
+            inputHandler = new InputHandler(scene, gameState.getPaddle1(), gameState.getPaddle2(), playAreaX, playAreaWidth, InputHandler.ControlSide.BOTH);
+        } else if (isHost) {
+            // Hôte : contrôle seulement paddle1
+            inputHandler = new InputHandler(scene, gameState.getPaddle1(), gameState.getPaddle2(), playAreaX, playAreaWidth, InputHandler.ControlSide.P1);  // Adaptez InputHandler pour gérer null
+        } else {
+            // Client : contrôle seulement paddle2
+            inputHandler = new InputHandler(scene, gameState.getPaddle1(), gameState.getPaddle2(), playAreaX, playAreaWidth, InputHandler.ControlSide.P2);  // Adaptez InputHandler pour gérer null
+        }
+
         collisionHandler = new CollisionHandler();
 
         timer = new AnimationTimer() {
@@ -71,6 +93,103 @@ public class GameController {
             }
         };
         timer.start();
+
+        if (networkManager != null && isHost != null) {
+            setupNetworkListeners();
+        }
+    }
+
+
+    public GameState getGameState() {
+        return gameState;
+    }
+
+    private void setupNetworkListeners() {
+        networkManager.setUpdateListener(new NetworkManager.NetworkUpdateListener() {
+//            @Override
+//            public void onPaddleUpdate(int playerId, double x, double y) {
+//                javafx.application.Platform.runLater(() -> {
+//                    if (isHost && playerId == 2) {
+//                        gameState.getPaddle2().setY(y);
+//                    } else if (!isHost && playerId == 1) {
+//                        gameState.getPaddle1().setY(y);
+//                    }
+//                });
+//            }
+
+            @Override
+            public void onPaddleUpdate(int playerId, double x, double y) {
+                javafx.application.Platform.runLater(() -> {
+                    if (isHost) {
+                        // hôte reçoit le paddle2 du client
+                        if (playerId == 2) {
+                            gameState.getPaddle2().setX(x);
+                            gameState.getPaddle2().setY(y);
+                        }
+                    } else {
+                        // client reçoit le paddle1 de l’hôte
+                        if (playerId == 1) {
+                            gameState.getPaddle1().setX(x);
+                            gameState.getPaddle1().setY(y);
+                        }
+                    }
+                });
+            }
+
+            @Override
+            public void onBallUpdate(double x, double y, double vx, double vy) {
+                javafx.application.Platform.runLater(() -> {
+                    if (!isHost) {
+                        gameState.getBall().setPosition(x, y);
+                        gameState.getBall().setVelocity(vx, vy);
+                    }
+                });
+            }
+
+            @Override
+            public void onGameStateUpdate(com.chesspong.network.GameStateData gameStateData) {
+                javafx.application.Platform.runLater(() -> {
+                    if (!isHost) {
+                        gameState.getBall().setPosition(
+                                gameStateData.getBallData().getX(),
+                                gameStateData.getBallData().getY()
+                        );
+                        gameState.getBall().setVelocity(
+                                gameStateData.getBallData().getVx(),
+                                gameStateData.getBallData().getVy()
+                        );
+                        gameState.getPaddle1().setY(gameStateData.getPaddle1Data().getY());
+                        gameState.getPaddle1().setX(gameStateData.getPaddle1Data().getX());
+
+                        gameState.getPaddle2().setY(gameStateData.getPaddle2Data().getY());
+                        gameState.getPaddle2().setX(gameStateData.getPaddle2Data().getX());
+                    }
+                });
+            }
+
+            @Override
+            public void onGameConfigReceived(com.chesspong.network.GameConfig gameConfig) {
+                javafx.application.Platform.runLater(() -> {
+                    if (!isHost) {
+                        // Le client reçoit la configuration et démarre le jeu
+                        System.out.println("Configuration reçue: " + gameConfig.getNumFiles() + " types de pièces");
+                        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                        alert.setTitle("Configuration reçue");
+                        alert.setHeaderText(null);
+                        alert.setContentText("Configuration: " + gameConfig.getNumFiles() + " types de pièces\nDémarrage de la partie...");
+                        alert.showAndWait();
+
+                        if (gameConfig.getPieceLives() != null) {
+                            gameState.setPieceLives(gameConfig.getPieceLives());
+                        }
+                        // Créer une nouvelle instance du contrôleur avec les bons paramètres
+//                        Stage stage = (Stage) ballView.getScene().getWindow();
+//                        new GameController(stage, gameConfig.getNumFiles(), networkManager, isHost);
+                    }
+                });
+            }
+
+        });
     }
 
     private void update() {
@@ -84,6 +203,20 @@ public class GameController {
         if (gameState.isGameOver()) {
             timer.stop();
             System.out.println("Game Over! Winner: " + gameState.getWinner().getName());
+        }
+
+        // Ajout de la synchronisation réseau
+        if (networkManager != null && isHost != null) {
+            if (isHost) {
+                networkManager.sendPaddleUpdate(1, gameState.getPaddle1().getX(), gameState.getPaddle1().getY());
+                networkManager.sendBallUpdate(gameState.getBall());
+                // Envoi périodique de l'état complet toutes les secondes
+                if (System.currentTimeMillis() % 1000 < 16) {
+                    networkManager.sendGameState(gameState.getBall(), gameState.getPaddle1(), gameState.getPaddle2(), gameState.getBoard());
+                }
+            } else {
+                networkManager.sendPaddleUpdate(2, gameState.getPaddle2().getX(), gameState.getPaddle2().getY());
+            }
         }
     }
 }

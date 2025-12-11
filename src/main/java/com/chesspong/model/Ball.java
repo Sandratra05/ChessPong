@@ -67,4 +67,14 @@ public class Ball {
         x += vx;
         y += vy;
     }
+
+    public void setPosition(double x, double y) {
+        this.x = x;
+        this.y = y;
+    }
+
+    public void setVelocity(double vx, double vy) {
+        this.vx = vx;
+        this.vy = vy;
+    }
 }
