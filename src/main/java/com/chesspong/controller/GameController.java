@@ -128,21 +128,21 @@ public class GameController {
 
             @Override
             public void onGameConfigReceived(com.chesspong.network.GameConfig gameConfig) {
-//                javafx.application.Platform.runLater(() -> {
-//                    if (!isHost) {
-//                        // Le client reçoit la configuration et démarre le jeu
-//                        System.out.println("Configuration reçue: " + gameConfig.getNumFiles() + " types de pièces");
-//                        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-//                        alert.setTitle("Configuration reçue");
-//                        alert.setHeaderText(null);
-//                        alert.setContentText("Configuration: " + gameConfig.getNumFiles() + " types de pièces\nDémarrage de la partie...");
-//                        alert.showAndWait();
-//
-//                        // Créer une nouvelle instance du contrôleur avec les bons paramètres
-//                        Stage stage = (Stage) ballView.getScene().getWindow();
-//                        new GameController(stage, gameConfig.getNumFiles(), networkManager, isHost);
-//                    }
-//                });
+                javafx.application.Platform.runLater(() -> {
+                    if (!isHost) {
+                        // Le client reçoit la configuration et démarre le jeu
+                        System.out.println("Configuration reçue: " + gameConfig.getNumFiles() + " types de pièces");
+                        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                        alert.setTitle("Configuration reçue");
+                        alert.setHeaderText(null);
+                        alert.setContentText("Configuration: " + gameConfig.getNumFiles() + " types de pièces\nDémarrage de la partie...");
+                        alert.showAndWait();
+
+                        // Créer une nouvelle instance du contrôleur avec les bons paramètres
+                        Stage stage = (Stage) ballView.getScene().getWindow();
+                        new GameController(stage, gameConfig.getNumFiles(), networkManager, isHost);
+                    }
+                });
             }
         });
     }
