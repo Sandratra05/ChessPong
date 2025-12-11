@@ -40,6 +40,13 @@ public class GameState {
         updatePieceHealths();
     }
 
+    public void setPieceLives(Map<String, Integer> lives) {
+        if (lives == null) return;
+        this.pieceLives.clear();
+        this.pieceLives.putAll(lives);
+        updatePieceHealths();
+    }
+
     // Méthode pour attribuer les vies selon le nombre sélectionné
     private void assignLives() {
         // Collecter les types de pièces selon la sélection

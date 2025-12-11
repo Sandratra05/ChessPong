@@ -33,7 +33,6 @@ public class Main extends Application {
                 networkManager.startAsHost(port, () -> {
                     Platform.runLater(() -> {
                         showInfo("Client connecté! Envoi de la configuration...");
-                        networkManager.sendGameConfig(numFiles);
                         try {
                             Thread.sleep(500);
                         } catch (InterruptedException e) {
@@ -41,6 +40,7 @@ public class Main extends Application {
                         }
                         showInfo("Configuration envoyée! Démarrage de la partie...");
                         startGame(primaryStage, true);
+                        networkManager.sendGameConfig(numFiles, gameController.getGameState().getPieceLives());
                     });
                 });
                 showInfo("Configuration: " + numFiles + " types de pièces\nEn attente d'un client sur le port " + port + "...");

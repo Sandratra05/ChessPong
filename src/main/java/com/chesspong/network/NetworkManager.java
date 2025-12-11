@@ -3,6 +3,7 @@ package com.chesspong.network;
 import com.chesspong.model.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class NetworkManager {
     private GameServer server;
@@ -174,8 +175,8 @@ public class NetworkManager {
         }
     }
 
-    public void sendGameConfig(int numFiles) {
-        GameConfig config = new GameConfig(numFiles);
+    public void sendGameConfig(int numFiles, Map<String, Integer> pieceLives) {
+        GameConfig config = new GameConfig(numFiles, pieceLives);
         NetworkMessage message = new NetworkMessage(NetworkMessage.MessageType.GAME_CONFIG, config);
 
         if (isHost && server != null) {

@@ -100,6 +100,10 @@ public class GameController {
     }
 
 
+    public GameState getGameState() {
+        return gameState;
+    }
+
     private void setupNetworkListeners() {
         networkManager.setUpdateListener(new NetworkManager.NetworkUpdateListener() {
             @Override
