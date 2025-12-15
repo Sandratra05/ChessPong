@@ -20,18 +20,21 @@ public class Main extends Application {
     private RestGameConfigClient restClient;
     private int numFiles = 8; // Configuration par défaut
 
+    private static final String REST_SERVICE_PORT = "8084";
+    private static final String REST_SERVICE_PATH = "/ChessPongConfigREST-1.0-SNAPSHOT/api/configs";
+
+
     @Override
     public void start(Stage primaryStage) {
         networkManager = new NetworkManager();
-
-        // URL du serveur REST (à adapter selon déploiement)
-        restClient = new RestGameConfigClient("http://localhost:8084/ChessPongConfigREST-1.0-SNAPSHOT/api/configs");
-
 
         NetworkMenuView menuView = new NetworkMenuView(primaryStage);
         menuView.setListener(new NetworkMenuView.NetworkMenuListener() {
             @Override
             public void onHostGame(int port) {
+                // REST sur la machine qui héberge (local)
+                ensureRestClient("127.0.0.1");
+
                 // Configurer les paramètres avant d'héberger
                 if (!configureGameParameters()) {
                     menuView.show(); // Retour au menu si annulation
@@ -71,10 +74,33 @@ public class Main extends Application {
 
                 setupClientNetworkListener(primaryStage);
 
+                // s'assurer que le restClient pointe vers l'host réseau saisi par l'utilisateur
+                ensureRestClient(host);
+
                 networkManager.connectAsClient(host, port, () -> {
-                    Platform.runLater(() -> {
-                        showInfo("Connecté! En attente de la configuration de l'hôte...");
-                    });
+                    // tenter de récupérer la configuration persistée via REST (non bloquant)
+                    new Thread(() -> {
+                        try {
+                            GameConfig cfg = restClient.fetchLatest();
+                            if (cfg != null) {
+                                Platform.runLater(() -> {
+                                    numFiles = cfg.getNumFiles();
+                                    showInfo("Configuration REST reçue: " + numFiles + " types de pièces\nDémarrage de la partie...");
+                                    startGame(primaryStage, false);
+                                    if (cfg.getPieceLives() != null) {
+                                        gameController.getGameState().setPieceLives(cfg.getPieceLives());
+                                    }
+                                });
+                                return;
+                            }
+                        } catch (IOException e) {
+                            System.err.println("Erreur REST fetchLatest : " + e.getMessage());
+                        }
+                        // Si pas de config REST, on attend la config via le réseau comme avant
+                        Platform.runLater(() -> {
+                            showInfo("Connecté! En attente de la configuration de l'hôte...");
+                        });
+                    }, "rest-game-config-fetcher").start();
                 });
             }
 
@@ -85,6 +111,19 @@ public class Main extends Application {
                     menuView.show(); // Retour au menu si annulation
                     return;
                 }
+
+                // REST sur localhost pour jeu local
+                ensureRestClient("127.0.0.1");
+
+                // Persist via REST (appel non bloquant)
+                new Thread(() -> {
+                    try {
+                        GameConfig cfg = new GameConfig(numFiles, gameController.getGameState().getPieceLives());
+                        restClient.postConfig(cfg);
+                    } catch (IOException e) {
+                        System.err.println("Échec de l'enregistrement REST de la configuration : " + e.getMessage());
+                    }
+                }, "rest-game-config-uploader").start();
 
                 System.out.println("----------- EN LOCAL OO ---------");
                 startGame(primaryStage, null);
@@ -134,6 +173,23 @@ public class Main extends Application {
 
     public static void main(String[] args) {
         launch(args);
+    }
+
+    // construit ou reconstruit restClient à partir d'un host/hostname/IP fourni
+    private void ensureRestClient(String hostOrUrl) {
+        if (hostOrUrl == null) return;
+        String h = hostOrUrl.trim();
+        if (h.isEmpty()) return;
+        // enlever http(s):// et path/port s'ils existent
+        if (h.startsWith("http://")) h = h.substring(7);
+        if (h.startsWith("https://")) h = h.substring(8);
+        int slash = h.indexOf('/');
+        if (slash > -1) h = h.substring(0, slash);
+        int colon = h.indexOf(':');
+        if (colon > -1) h = h.substring(0, colon);
+        String baseUrl = "http://" + h + ":" + REST_SERVICE_PORT + REST_SERVICE_PATH;
+        restClient = new RestGameConfigClient(baseUrl);
+        System.out.println("REST client configuré vers : " + baseUrl);
     }
 
     private void setupClientNetworkListener(Stage primaryStage) {
