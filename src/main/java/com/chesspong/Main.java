@@ -1,24 +1,32 @@
 package com.chesspong;
 
 import com.chesspong.controller.GameController;
+import com.chesspong.network.GameConfig;
 import com.chesspong.network.NetworkManager;
+import com.chesspong.network.RestGameConfigClient;
 import com.chesspong.view.NetworkMenuView;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.scene.control.Alert;
 import javafx.stage.Stage;
 import javax.swing.JOptionPane;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 public class Main extends Application {
     private NetworkManager networkManager;
     private GameController gameController;
+    private RestGameConfigClient restClient;
     private int numFiles = 8; // Configuration par défaut
 
     @Override
     public void start(Stage primaryStage) {
         networkManager = new NetworkManager();
+
+        // URL du serveur REST (à adapter selon déploiement)
+        restClient = new RestGameConfigClient("http://localhost:8084/ChessPongConfigREST-1.0-SNAPSHOT/api/configs");
+
 
         NetworkMenuView menuView = new NetworkMenuView(primaryStage);
         menuView.setListener(new NetworkMenuView.NetworkMenuListener() {
@@ -41,6 +49,16 @@ public class Main extends Application {
                         showInfo("Configuration envoyée! Démarrage de la partie...");
                         startGame(primaryStage, true);
                         networkManager.sendGameConfig(numFiles, gameController.getGameState().getPieceLives());
+
+                        // Persist via REST (appel non bloquant)
+                        new Thread(() -> {
+                            try {
+                                GameConfig cfg = new GameConfig(numFiles, gameController.getGameState().getPieceLives());
+                                restClient.postConfig(cfg);
+                            } catch (IOException e) {
+                                System.err.println("Échec de l'enregistrement REST de la configuration : " + e.getMessage());
+                            }
+                        }, "rest-game-config-uploader").start();
                     });
                 });
                 showInfo("Configuration: " + numFiles + " types de pièces\nEn attente d'un client sur le port " + port + "...");
