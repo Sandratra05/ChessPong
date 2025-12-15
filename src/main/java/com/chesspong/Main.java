@@ -72,9 +72,29 @@ public class Main extends Application {
                 setupClientNetworkListener(primaryStage);
 
                 networkManager.connectAsClient(host, port, () -> {
-                    Platform.runLater(() -> {
-                        showInfo("Connecté! En attente de la configuration de l'hôte...");
-                    });
+                    // tenter de récupérer la configuration persistée via REST (non bloquant)
+                    new Thread(() -> {
+                        try {
+                            GameConfig cfg = restClient.fetchLatest();
+                            if (cfg != null) {
+                                Platform.runLater(() -> {
+                                    numFiles = cfg.getNumFiles();
+                                    showInfo("Configuration REST reçue: " + numFiles + " types de pièces\nDémarrage de la partie...");
+                                    startGame(primaryStage, false);
+                                    if (cfg.getPieceLives() != null) {
+                                        gameController.getGameState().setPieceLives(cfg.getPieceLives());
+                                    }
+                                });
+                                return;
+                            }
+                        } catch (IOException e) {
+                            System.err.println("Erreur REST fetchLatest : " + e.getMessage());
+                        }
+                        // Si pas de config REST, on attend la config via le réseau comme avant
+                        Platform.runLater(() -> {
+                            showInfo("Connecté! En attente de la configuration de l'hôte...");
+                        });
+                    }, "rest-game-config-fetcher").start();
                 });
             }
 
@@ -85,6 +105,16 @@ public class Main extends Application {
                     menuView.show(); // Retour au menu si annulation
                     return;
                 }
+
+                // Persist via REST (appel non bloquant)
+                new Thread(() -> {
+                    try {
+                        GameConfig cfg = new GameConfig(numFiles, gameController.getGameState().getPieceLives());
+                        restClient.postConfig(cfg);
+                    } catch (IOException e) {
+                        System.err.println("Échec de l'enregistrement REST de la configuration : " + e.getMessage());
+                    }
+                }, "rest-game-config-uploader").start();
 
                 System.out.println("----------- EN LOCAL OO ---------");
                 startGame(primaryStage, null);
