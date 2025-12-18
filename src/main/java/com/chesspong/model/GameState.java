@@ -17,6 +17,8 @@ public class GameState {
     private Joueur winner;
     private int selectedPieceTypes; // Nouveau champ pour le nombre de types sélectionnés
     private Map<String, Integer> pieceLives; // Nouveau champ pour stocker les vies par type de pièce
+    private Pouvoir pouvoir; // gestion du pouvoir
+    private boolean livesConfigured = false; // indicateur que le formulaire d'assignation des vies est terminé
 
     public GameState(int numFiles, Joueur player1, Joueur player2, Boolean doLifeConfig) {
         this.player1 = player1;
@@ -30,6 +32,7 @@ public class GameState {
         this.gameOver = false;
         this.pieceLives = new HashMap<>();
         this.selectedPieceTypes = numFiles; // Utiliser numFiles comme nombre de types sélectionnés
+        this.pouvoir = new Pouvoir(5); // valeur par défaut, potentiellement remplacée par la configuration
 
         // Attribution des vies selon la sélection
         if (doLifeConfig) {
@@ -94,6 +97,9 @@ public class GameState {
                 pieceLives.put(type, 1);
             }
         }
+        // Marquer que le formulaire d'assignation des vies est terminé
+        this.livesConfigured = true;
+        System.out.println("[GameState] assignLives finished, livesConfigured=true, pieceLives=" + pieceLives);
     }
 
     // Nouvelle méthode pour mettre à jour la santé des pièces
@@ -174,5 +180,13 @@ public class GameState {
             winner = player1;
             JOptionPane.showMessageDialog(null, "La partie est terminée ! " + player1.getName() + " a gagné.", "Fin de partie", JOptionPane.INFORMATION_MESSAGE);
         }
+    }
+
+    public Pouvoir getPouvoir() {
+        return this.pouvoir;
+    }
+
+    public boolean isLivesConfigured() {
+        return livesConfigured;
     }
 }
