@@ -3,12 +3,18 @@ package com.chesspong.controller;
 import com.chesspong.model.GameState;
 import com.chesspong.model.Joueur;
 import com.chesspong.network.NetworkManager;
+import com.chesspong.network.RestGameConfigClient;
 import com.chesspong.view.BallView;
 import com.chesspong.view.BoardView;
 import com.chesspong.view.PaddleView;
 import javafx.animation.AnimationTimer;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.ProgressBar;
+import javafx.scene.control.TextField;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
 
@@ -22,6 +28,15 @@ public class GameController {
     private AnimationTimer timer;
     private NetworkManager networkManager;
     private Boolean isHost; // null = local, true = host, false = client
+
+    // UI pouvoir
+    private ProgressBar powerBar;
+    private Label powerLabel;
+    private TextField powerInput;
+    private Button powerValidateBtn;
+
+    private RestGameConfigClient restClient;
+    private Long currentConfigId;
 
     public GameController(Stage stage, int numFiles, NetworkManager networkManager, Boolean isHost) {
         this.networkManager = networkManager;
@@ -68,6 +83,56 @@ public class GameController {
         Pane root = new Pane();
         root.getChildren().addAll(boardView, ballView, paddleView1, paddleView2);
 
+        // UI Pouvoir (barre + configuration quand prêt)
+        powerBar = new ProgressBar(0);
+        powerBar.setPrefWidth(200);
+        powerLabel = new Label("Pouvoir: 0/0");
+        powerInput = new TextField();
+        powerInput.setPromptText("Power (dégâts)");
+        powerInput.setPrefWidth(80);
+        powerValidateBtn = new Button("Valider");
+        HBox powerBox = new HBox(8, powerLabel, powerBar, powerInput, powerValidateBtn);
+        powerBox.setLayoutX(playAreaX);
+        powerBox.setLayoutY(680); // sous l'échiquier
+        root.getChildren().add(powerBox);
+        // Au départ, masquer l'input tant que la jauge n'est pas pleine
+        powerInput.setVisible(false);
+        powerValidateBtn.setVisible(false);
+
+        // Seul l'hôte (isHost == null pour local, ou true) peut configurer le power
+        final boolean canConfigurePower = (this.isHost == null) || this.isHost;
+        powerInput.setDisable(!canConfigurePower);
+        powerValidateBtn.setDisable(!canConfigurePower);
+
+        powerValidateBtn.setOnAction(e -> {
+            if (!canConfigurePower) return; // ignore côté client
+            try {
+                int val = Integer.parseInt(powerInput.getText().trim());
+                if (val < 0) val = 0;
+                gameState.getPouvoir().setPower(val);
+                boolean activated = gameState.getPouvoir().activateIfReady();
+                if (activated) {
+                    powerInput.clear();
+                    powerInput.setVisible(false);
+                    powerValidateBtn.setVisible(false);
+
+                    // update REST du power quand on l’active
+                    if (restClient != null && currentConfigId != null && currentConfigId > 0) {
+                        int finalVal = val;
+                        new Thread(() -> {
+                            try {
+                                restClient.updatePower(currentConfigId, finalVal);
+                            } catch (Exception ex) {
+                                System.err.println("Maj REST power échouée: " + ex.getMessage());
+                            }
+                        }, "rest-update-power").start();
+                    }
+                }
+            } catch (NumberFormatException ex) {
+                // ignorer
+            }
+        });
+
         Scene scene = new Scene(root, 800, 800);
         stage.setScene(scene);
         stage.setTitle("ChessPong");
@@ -97,6 +162,9 @@ public class GameController {
         if (networkManager != null && isHost != null) {
             setupNetworkListeners();
         }
+//        if (networkManager != null && Boolean.TRUE.equals(isHost)) {
+//            setupNetworkListeners();
+//        }
     }
 
 
@@ -104,19 +172,31 @@ public class GameController {
         return gameState;
     }
 
+    // Appliquer la capacité au gameplay
+    public void applyCapacity(int capacity) {
+        if (capacity <= 0) return;
+        if (gameState != null && gameState.getPouvoir() != null) {
+            gameState.getPouvoir().setCapacite(capacity);
+        }
+        // si on veut aussi la pousser en base si id dispo
+        if (restClient != null && currentConfigId != null && currentConfigId > 0) {
+            new Thread(() -> {
+                try {
+                    restClient.updateCapacity(currentConfigId, capacity);
+                } catch (Exception ex) {
+                    System.err.println("Maj REST capacity échouée: " + ex.getMessage());
+                }
+            }, "rest-update-capacity").start();
+        }
+    }
+
+    public void setConfigPersistence(RestGameConfigClient client, Long configId) {
+        this.restClient = client;
+        this.currentConfigId = configId;
+    }
+
     private void setupNetworkListeners() {
         networkManager.setUpdateListener(new NetworkManager.NetworkUpdateListener() {
-//            @Override
-//            public void onPaddleUpdate(int playerId, double x, double y) {
-//                javafx.application.Platform.runLater(() -> {
-//                    if (isHost && playerId == 2) {
-//                        gameState.getPaddle2().setY(y);
-//                    } else if (!isHost && playerId == 1) {
-//                        gameState.getPaddle1().setY(y);
-//                    }
-//                });
-//            }
-
             @Override
             public void onPaddleUpdate(int playerId, double x, double y) {
                 javafx.application.Platform.runLater(() -> {
@@ -194,11 +274,29 @@ public class GameController {
 
     private void update() {
         gameState.getBall().updatePosition();
-        collisionHandler.handleBallCollisions(gameState.getBall(), gameState.getBoard(), gameState.getPaddle1(), gameState.getPaddle2());
+        collisionHandler.handleBallCollisions(gameState.getBall(), gameState.getBoard(), gameState.getPaddle1(), gameState.getPaddle2(), gameState.getPouvoir());
         ballView.updatePosition();
         paddleView1.updatePosition();
         paddleView2.updatePosition();
         boardView.draw();
+
+        // MAJ UI pouvoir
+        int cap = gameState.getPouvoir().getCapacite();
+        int charge = gameState.getPouvoir().getCharge();
+        int remaining = gameState.getPouvoir().getRemaining();
+        double progress = (cap > 0) ? ((double) charge / (double) cap) : 0.0;
+        powerBar.setProgress(Math.max(0, Math.min(1, progress)));
+        if (gameState.getPouvoir().isActive()) {
+            powerLabel.setText("Pouvoir actif: reste " + remaining);
+            powerInput.setVisible(false);
+            powerValidateBtn.setVisible(false);
+        } else {
+            powerLabel.setText("Pouvoir: " + charge + "/" + cap);
+            boolean ready = gameState.getPouvoir().isReady();
+            powerInput.setVisible(ready);
+            powerValidateBtn.setVisible(ready);
+        }
+
         gameState.checkWinCondition();
         if (gameState.isGameOver()) {
             timer.stop();

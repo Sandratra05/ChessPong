@@ -1,7 +1,6 @@
 package com.chesspong.network;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonObject;
 
 import java.io.*;
 import java.net.HttpURLConnection;
@@ -10,15 +9,13 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class RestGameConfigClient {
-    private final String baseUrl; // ex: "http://localhost:8080/ChessPongConfigREST/api/configs"
+    private final String baseUrl;
     private final Gson gson = new Gson();
 
-    public RestGameConfigClient(String baseUrl) {
-        this.baseUrl = baseUrl;
-    }
+    public RestGameConfigClient(String baseUrl) { this.baseUrl = baseUrl; }
 
-    // POST la configuration (utiliser depuis l'hôte)
-    public void postConfig(GameConfig config) throws IOException {
+    // POST et retourne l'id créé
+    public long postConfigAndReturnId(GameConfig config) throws IOException {
         EntityGameConfigDto dto = mapToDto(config);
         String json = gson.toJson(dto);
         URL url = new URL(baseUrl);
@@ -36,12 +33,19 @@ public class RestGameConfigClient {
                 String resp = readStream(con.getErrorStream());
                 throw new IOException("Erreur POST config : HTTP " + code + " - " + resp);
             }
+            String body = readStream(con.getInputStream());
+            EntityGameConfigDto saved = gson.fromJson(body, EntityGameConfigDto.class);
+            return saved != null && saved.getId() != null ? saved.getId() : -1L;
         } finally {
             con.disconnect();
         }
     }
 
-    // GET /latest -> renvoie com.chesspong.network.GameConfig (utiliser depuis le client)
+    // Compat: ancien nom
+    public void postConfig(GameConfig config) throws IOException {
+        postConfigAndReturnId(config);
+    }
+
     public GameConfig fetchLatest() throws IOException {
         URL url = new URL(baseUrl + "/latest");
         HttpURLConnection con = (HttpURLConnection) url.openConnection();
@@ -49,9 +53,7 @@ public class RestGameConfigClient {
             con.setRequestMethod("GET");
             con.setRequestProperty("Accept", "application/json");
             int code = con.getResponseCode();
-            if (code == 404) {
-                return null;
-            }
+            if (code == 404) return null;
             if (code < 200 || code >= 300) {
                 String resp = readStream(con.getErrorStream());
                 throw new IOException("Erreur GET latest : HTTP " + code + " - " + resp);
@@ -59,6 +61,48 @@ public class RestGameConfigClient {
             String body = readStream(con.getInputStream());
             EntityGameConfigDto dto = gson.fromJson(body, EntityGameConfigDto.class);
             return mapToNetworkConfig(dto);
+        } finally {
+            con.disconnect();
+        }
+    }
+
+    public void updateCapacity(long id, int capacity) throws IOException {
+        URL url = new URL(baseUrl + "/" + id + "/capacity");
+        HttpURLConnection con = (HttpURLConnection) url.openConnection();
+        try {
+            con.setRequestMethod("PUT");
+            con.setRequestProperty("Content-Type", "application/json; utf-8");
+            con.setDoOutput(true);
+            String json = "{\"capacity\":" + capacity + "}";
+            try (OutputStream os = con.getOutputStream()) {
+                os.write(json.getBytes("utf-8"));
+            }
+            int code = con.getResponseCode();
+            if (code < 200 || code >= 300) {
+                String resp = readStream(con.getErrorStream());
+                throw new IOException("Erreur PUT capacity : HTTP " + code + " - " + resp);
+            }
+        } finally {
+            con.disconnect();
+        }
+    }
+
+    public void updatePower(long id, int power) throws IOException {
+        URL url = new URL(baseUrl + "/" + id + "/power");
+        HttpURLConnection con = (HttpURLConnection) url.openConnection();
+        try {
+            con.setRequestMethod("PUT");
+            con.setRequestProperty("Content-Type", "application/json; utf-8");
+            con.setDoOutput(true);
+            String json = "{\"power\":" + power + "}";
+            try (OutputStream os = con.getOutputStream()) {
+                os.write(json.getBytes("utf-8"));
+            }
+            int code = con.getResponseCode();
+            if (code < 200 || code >= 300) {
+                String resp = readStream(con.getErrorStream());
+                throw new IOException("Erreur PUT power : HTTP " + code + " - " + resp);
+            }
         } finally {
             con.disconnect();
         }
@@ -74,7 +118,6 @@ public class RestGameConfigClient {
         }
     }
 
-    // mapping DTO -> network.GameConfig
     private GameConfig mapToNetworkConfig(EntityGameConfigDto dto) {
         if (dto == null) return null;
         Map<String, Integer> pieceLives = new HashMap<>();
@@ -85,13 +128,18 @@ public class RestGameConfigClient {
         if (dto.getQueenLives() != null) pieceLives.put("queen", dto.getQueenLives());
         if (dto.getKingLives() != null) pieceLives.put("king", dto.getKingLives());
         int numFiles = dto.getStartFile() != null ? dto.getStartFile() : 0;
-        return new GameConfig(numFiles, pieceLives);
+        GameConfig cfg = new GameConfig(numFiles, pieceLives);
+        cfg.setId(dto.getId());
+        cfg.setCapacity(dto.getCapacity());
+        cfg.setPower(dto.getPower());
+        return cfg;
     }
 
-    // mapping network.GameConfig -> DTO attendu par le REST EJB
     private EntityGameConfigDto mapToDto(GameConfig config) {
         EntityGameConfigDto dto = new EntityGameConfigDto();
         dto.setStartFile(config.getNumFiles());
+        dto.setCapacity(config.getCapacity());
+        dto.setPower(config.getPower());
         Map<String, Integer> map = config.getPieceLives();
         if (map == null) return dto;
         dto.setPawnLives(getIgnoreCase(map, "pawn", "PAWN", "Pion", "pawnLives"));
